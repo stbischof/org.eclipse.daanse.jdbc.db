@@ -29,6 +29,7 @@
     <module>test-support</module>
     <module>h2</module>
     <module>mysql</module>
+    <module>oracle</module>
 <!--
     <module>configurable</module>
 
@@ -55,7 +56,6 @@
     <module>netezza</module>
     <module>nuodb</module>
     <module>opensearch</module>
-    <module>oracle</module>
     <module>pdidataservice</module>
     <module>postgresql</module>
     <module>redshift</module>
