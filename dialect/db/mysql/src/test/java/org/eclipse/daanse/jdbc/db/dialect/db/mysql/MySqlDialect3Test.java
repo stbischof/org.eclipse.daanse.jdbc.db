@@ -22,7 +22,6 @@
 package org.eclipse.daanse.jdbc.db.dialect.db.mysql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
@@ -52,7 +51,7 @@ class MySqlDialect3Test {
         when(connection.getMetaData()).thenReturn(metaData);
         when(metaData.getDatabaseProductName()).thenReturn("MYSQL");
         when(metaData.getDatabaseProductVersion()).thenReturn("5.0");
-        dialect = new MySqlDialect(connection);
+        dialect = new MySqlDialect(org.eclipse.daanse.jdbc.db.dialect.api.DialectInitData.fromConnection(connection));
         buf = new StringBuilder();
     }
 
@@ -63,18 +62,20 @@ class MySqlDialect3Test {
 
     @Test
     void testGenerateRegularExpression_InvalidRegex() throws Exception {
-        assertNull(dialect.generateRegularExpression("table.column", "(a"), "Invalid regex should be ignored");
+        assertTrue(dialect.regexGenerator().generateRegularExpression("table.column", "(a").isEmpty(),
+                "Invalid regex should be ignored");
     }
 
     @Test
     void testGenerateRegularExpression_CaseInsensitive() throws Exception {
-        String sql = dialect.generateRegularExpression("table.column", "(?i)|(?u).*a.*").toString();
+        String sql = dialect.regexGenerator().generateRegularExpression("table.column", "(?i)|(?u).*a.*").get()
+                .toString();
         assertEquals("table.column IS NOT NULL AND UPPER(table.column) REGEXP '.*A.*'", sql);
     }
 
     @Test
     void testGenerateRegularExpression_CaseSensitive() throws Exception {
-        String sql = dialect.generateRegularExpression("table.column", ".*a.*").toString();
+        String sql = dialect.regexGenerator().generateRegularExpression("table.column", ".*a.*").get().toString();
         assertEquals("table.column IS NOT NULL AND table.column REGEXP '.*a.*'", sql);
     }
 

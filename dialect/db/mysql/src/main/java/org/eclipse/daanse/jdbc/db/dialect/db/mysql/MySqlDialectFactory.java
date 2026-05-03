@@ -13,10 +13,11 @@
  */
 package org.eclipse.daanse.jdbc.db.dialect.db.mysql;
 
-import java.sql.Connection;
 import java.util.function.Function;
 
+import org.eclipse.daanse.jdbc.db.dialect.api.Dialect;
 import org.eclipse.daanse.jdbc.db.dialect.api.DialectFactory;
+import org.eclipse.daanse.jdbc.db.dialect.api.DialectInitData;
 import org.eclipse.daanse.jdbc.db.dialect.api.DialectName;
 import org.eclipse.daanse.jdbc.db.dialect.db.common.AbstractDialectFactory;
 import org.osgi.service.component.annotations.Component;
@@ -27,7 +28,16 @@ import org.osgi.service.component.annotations.ServiceScope;
 public class MySqlDialectFactory extends AbstractDialectFactory<MySqlDialect> {
 
     @Override
-    public Function<Connection, MySqlDialect> getConstructorFunction() {
+    public Dialect createDialect(DialectInitData init) {
+        if (MySqlDialect.looksLikeInfobright(init)) {
+            throw new IllegalStateException("Snapshot looks like Infobright (productVersion=" + init.productVersion()
+                    + "); use InfobrightDialectFactory");
+        }
+        return super.createDialect(init);
+    }
+
+    @Override
+    public Function<DialectInitData, MySqlDialect> getConstructorFunction() {
         return MySqlDialect::new;
     }
 
