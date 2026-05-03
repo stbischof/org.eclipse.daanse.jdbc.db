@@ -12,7 +12,6 @@
 *   Stefan Bischof (bipolis.org) - initial
 *   Sergei Semenkov - initial
 */
-
 @org.osgi.annotation.bundle.Export
 @org.osgi.annotation.versioning.Version("0.0.1")
 package org.eclipse.daanse.jdbc.db.dialect.api.generator;

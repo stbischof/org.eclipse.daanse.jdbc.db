@@ -13,22 +13,13 @@
  */
 package org.eclipse.daanse.jdbc.db.dialect.api;
 
-/**
- * Holds constants for Daanse Dialect related OSGi properties.
- */
 public final class DaanseDialectConstants {
 
     private DaanseDialectConstants() {
         // Utility class, no instantiation
     }
 
-    /**
-     * The base prefix for all Daanse-related OSGi properties.
-     */
     public static final String PREFIX = "org.eclipse.daanse";
 
-    /**
-     * The property key for the dialect name.
-     */
     public static final String DIALECT_NAME_PROPERTY = PREFIX + ".dialect.name";
 }

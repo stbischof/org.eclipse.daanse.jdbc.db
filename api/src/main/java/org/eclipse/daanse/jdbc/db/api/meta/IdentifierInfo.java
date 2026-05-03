@@ -18,24 +18,11 @@ import java.util.Set;
 
 public interface IdentifierInfo {
 
-    /**
-     * Retrieves the string used to quote SQL identifiers. This method returns a
-     * space " " if identifier quoting is not supported.
-     *
-     * @return the quoting string or a space if quoting is not supported
-     */
+    /** @return the quoting string or a space if quoting is not supported */
     String quoteString();
 
-    /**
-     *
-     * @return max column name length
-     */
     int maxColumnNameLength();
 
-    /**
-     *
-     * @return is read only flag
-     */
     boolean readOnly();
 
     Set<List<Integer>> supportedResultSetStyles();

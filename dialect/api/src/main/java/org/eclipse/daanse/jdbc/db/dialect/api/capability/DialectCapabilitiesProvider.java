@@ -13,322 +13,212 @@
  */
 package org.eclipse.daanse.jdbc.db.dialect.api.capability;
 
-/**
- * Interface for querying SQL dialect capabilities.
- * <p>
- * This interface provides methods to check what features a SQL dialect supports.
- * Capabilities are grouped into cohesive record objects for easier handling.
- */
 public interface DialectCapabilitiesProvider {
 
-    /**
-     * Returns the aggregate function capabilities of this dialect.
-     * <p>
-     * Default implementation builds capabilities from legacy boolean methods.
-     *
-     * @return aggregate capabilities
-     */
     default AggregateCapabilities getAggregateCapabilities() {
-        return new AggregateCapabilities(
-            allowsCountDistinct(),
-            allowsMultipleCountDistinct(),
-            allowsCompoundCountDistinct(),
-            allowsCountDistinctWithOtherAggs(),
-            allowsInnerDistinct(),
-            allowsMultipleDistinctSqlMeasures(),
-            supportsGroupingSets(),
-            supportsGroupByExpressions(),
-            allowsSelectNotInGroupBy()
-        );
+        return new AggregateCapabilities(allowsCountDistinct(), allowsMultipleCountDistinct(),
+                allowsCompoundCountDistinct(), allowsCountDistinctWithOtherAggs(), allowsInnerDistinct(),
+                allowsMultipleDistinctSqlMeasures(), supportsGroupingSets(), supportsGroupByExpressions(),
+                allowsSelectNotInGroupBy());
     }
 
-    /**
-     * Returns the JOIN and FROM clause capabilities of this dialect.
-     * <p>
-     * Default implementation builds capabilities from legacy boolean methods.
-     *
-     * @return join capabilities
-     */
+    default boolean allowsSelectNotInGroupBy() {
+        return false;
+    }
+
     default JoinCapabilities getJoinCapabilities() {
-        return new JoinCapabilities(
-            allowsJoinOn(),
-            allowsAs(),
-            allowsFromQuery(),
-            requiresAliasForFromQuery()
-        );
+        return new JoinCapabilities(allowsJoinOn(), allowsFromAlias(), allowsFromQuery(), requiresAliasForFromQuery());
     }
 
-    /**
-     * Returns the ORDER BY clause capabilities of this dialect.
-     * <p>
-     * Default implementation builds capabilities from legacy boolean methods.
-     *
-     * @return order by capabilities
-     */
     default OrderByCapabilities getOrderByCapabilities() {
-        return new OrderByCapabilities(
-            allowsOrderByAlias(),
-            requiresOrderByAlias(),
-            requiresUnionOrderByOrdinal(),
-            requiresUnionOrderByExprToBeInSelectClause(),
-            requiresGroupByAlias(),
-            requiresHavingAlias(),
-            supportsNullsLast()
-        );
+        return new OrderByCapabilities(allowsOrderByAlias(), requiresOrderByAlias(), requiresUnionOrderByOrdinal(),
+                requiresUnionOrderByExprInSelect(), requiresGroupByAlias(), requiresHavingAlias(), supportsNullsLast());
     }
 
-    /**
-     * Returns the window and analytic function capabilities of this dialect.
-     * <p>
-     * Default implementation builds capabilities from legacy boolean methods.
-     *
-     * @return window function capabilities
-     */
-    default WindowFunctionCapabilities getWindowFunctionCapabilities() {
-        return new WindowFunctionCapabilities(
-            supportsPercentileDisc(),
-            supportsPercentileCont(),
-            supportsListAgg(),
-            supportsNthValue(),
-            supportsNthValueIgnoreNulls()
-        );
+    WindowFunctionCapabilities getWindowFunctionCapabilities();
+
+    default DdlCapabilities getDdlCapabilities() {
+        return new DdlCapabilities(supportsDdl(), supportsDropTableCascade(), supportsSequences(),
+                dropIndexRequiresTable(), supportsCreateTableIfNotExists(), supportsCreateIndexIfNotExists(),
+                supportsDropIndexIfExists(), supportsCreateOrReplaceView(), supportsCreateOrReplaceTrigger(),
+                supportsDropViewIfExists(), supportsDropConstraintIfExists(), supportsDropTableIfExists(),
+                supportsDropSchemaIfExists(), requiresDropSchemaRestrict(), getMaxColumnNameLength());
     }
 
-    /**
-     * Returns the name of this dialect.
-     *
-     * @return dialect name
-     */
-    String getDialectName();
-
-    /**
-     * Returns the maximum column name length allowed by this dialect.
-     *
-     * @return maximum column name length
-     */
     int getMaxColumnNameLength();
 
-    /**
-     * Returns whether this dialect allows DDL operations.
-     *
-     * @return true if DDL is allowed
-     */
-    boolean allowsDdl();
+    /** @return true if DDL is allowed */
+    boolean supportsDdl();
+
+    /** @return true if {@code DROP TABLE … CASCADE} is recognised */
+    default boolean supportsDropTableCascade() {
+        return true;
+    }
+
+    /** @return true if SQL sequences are supported */
+    default boolean supportsSequences() {
+        return true;
+    }
 
     /**
-     * Returns whether this dialect allows sharing (caching) for the same data source.
-     *
-     * @return true if dialect sharing is allowed
+     * @return true if {@code DROP INDEX} must be qualified with the owning table;
+     *         false (default) otherwise
      */
+    default boolean dropIndexRequiresTable() {
+        return false;
+    }
+
+    /**
+     * @return true if the dialect honours the {@code IF NOT EXISTS} clause on
+     *         {@code CREATE TABLE}
+     */
+    default boolean supportsCreateTableIfNotExists() {
+        return true;
+    }
+
+    /**
+     * @return true if the dialect honours {@code IF NOT EXISTS} on
+     *         {@code CREATE INDEX}
+     */
+    default boolean supportsCreateIndexIfNotExists() {
+        return true;
+    }
+
+    /**
+     * @return true if the dialect honours {@code IF EXISTS} on {@code DROP INDEX}
+     */
+    default boolean supportsDropIndexIfExists() {
+        return true;
+    }
+
+    /**
+     * @return true if the dialect honours the {@code OR REPLACE} keyword on
+     *         {@code CREATE VIEW}
+     */
+    default boolean supportsCreateOrReplaceView() {
+        return true;
+    }
+
+    /**
+     * @return true if the dialect honours {@code OR REPLACE} on
+     *         {@code CREATE TRIGGER}
+     */
+    default boolean supportsCreateOrReplaceTrigger() {
+        return false;
+    }
+
+    /**
+     * @return true if the dialect honours {@code IF EXISTS} on {@code DROP VIEW}
+     */
+    default boolean supportsDropViewIfExists() {
+        return true;
+    }
+
+    /**
+     * @return true if the dialect honours {@code IF EXISTS} on
+     *         {@code DROP CONSTRAINT}
+     */
+    default boolean supportsDropConstraintIfExists() {
+        return true;
+    }
+
+    /**
+     * @return true if the dialect honours {@code IF EXISTS} on {@code DROP TABLE}
+     */
+    default boolean supportsDropTableIfExists() {
+        return true;
+    }
+
+    /**
+     * @return true if the dialect honours {@code IF EXISTS} on {@code DROP SCHEMA}
+     */
+    default boolean supportsDropSchemaIfExists() {
+        return true;
+    }
+
+    /**
+     * @return true if the dialect requires {@code RESTRICT} after
+     *         {@code DROP SCHEMA name}
+     */
+    default boolean requiresDropSchemaRestrict() {
+        return false;
+    }
+
+    /** @return true if dialect sharing is allowed */
     boolean allowsDialectSharing();
 
-    /**
-     * Returns whether this dialect supports regular expressions in WHERE/HAVING clauses.
-     *
-     * @return true if regex is supported
-     */
+    /** @return true if regex is supported */
     boolean allowsRegularExpressionInWhereClause();
 
-    /**
-     * Returns whether this dialect supports multi-value IN expressions.
-     * <p>
-     * For example: {@code WHERE (col1, col2) IN ((val1a, val2a), (val1b, val2b))}
-     *
-     * @return true if multi-value IN is supported
-     */
+    /** @return true if multi-value IN is supported */
     boolean supportsMultiValueInExpr();
 
-    /**
-     * Returns whether this dialect supports unlimited value lists in IN clauses.
-     *
-     * @return true if unlimited value lists are supported
-     */
+    /** @return true if unlimited value lists are supported */
     boolean supportsUnlimitedValueList();
 
-    /**
-     * Returns whether this dialect requires drillthrough max rows in LIMIT clause.
-     *
-     * @return true if required
-     */
+    /** @return true if required */
     boolean requiresDrillthroughMaxRowsInLimit();
 
-    /**
-     * Returns whether this dialect supports parallel data loading.
-     *
-     * @return true if parallel loading is supported
-     */
-    boolean supportParallelLoading();
+    /** @return true if parallel loading is supported */
+    boolean supportsParallelLoading();
 
-    /**
-     * Returns whether this dialect supports batch operations.
-     *
-     * @return true if batch operations are supported
-     */
-    boolean supportBatchOperations();
+    /** @return true if batch operations are supported */
+    boolean supportsBatchOperations();
 
-    /**
-     * Returns whether this dialect allows the AS keyword in field aliases.
-     *
-     * @return true if AS is allowed in field aliases
-     */
-    boolean allowsFieldAs();
+    /** @return true if AS is allowed in field aliases */
+    boolean allowsFieldAlias();
 
-    // Legacy methods - kept as abstract for backward compatibility
-    // These are the methods that implementations must provide
-    // The capability record getters build from these methods
+    // -------------------- canonical capability flags --------------------
+    //
+    // These flat boolean methods are the source of truth — every dialect
+    // implements (or inherits) one definitive value per flag. The
+    // record-based getters above (getAggregateCapabilities, getJoinCapabilities,
+    // …) are convenience aggregations that bundle the flags by concern;
+    // callers that only need one bundle ask for that record, callers that
+    // need a single flag call the flat method directly.
 
-    /**
-     * Returns whether AS keyword is allowed in FROM clause.
-     * @see JoinCapabilities#asKeyword()
-     */
-    boolean allowsAs();
+    boolean allowsFromAlias();
 
-    /**
-     * Returns whether subqueries are allowed in FROM clause.
-     * @see JoinCapabilities#fromQuery()
-     */
     boolean allowsFromQuery();
 
-    /**
-     * Returns whether FROM subqueries require an alias.
-     * @see JoinCapabilities#requiresAliasForFromQuery()
-     */
     boolean requiresAliasForFromQuery();
 
-    /**
-     * Returns whether ANSI JOIN...ON syntax is supported.
-     * @see JoinCapabilities#joinOn()
-     */
     boolean allowsJoinOn();
 
-    /**
-     * Returns whether COUNT(DISTINCT) is supported.
-     * @see AggregateCapabilities#countDistinct()
-     */
     boolean allowsCountDistinct();
 
-    /**
-     * Returns whether multiple COUNT(DISTINCT) is supported in same query.
-     * @see AggregateCapabilities#multipleCountDistinct()
-     */
     boolean allowsMultipleCountDistinct();
 
-    /**
-     * Returns whether COUNT(DISTINCT col1, col2) is supported.
-     * @see AggregateCapabilities#compoundCountDistinct()
-     */
     boolean allowsCompoundCountDistinct();
 
-    /**
-     * Returns whether COUNT(DISTINCT) can be used with other aggregates.
-     * @see AggregateCapabilities#countDistinctWithOtherAggs()
-     */
     boolean allowsCountDistinctWithOtherAggs();
 
-    /**
-     * Returns whether DISTINCT is allowed in inner queries.
-     * @see AggregateCapabilities#innerDistinct()
-     */
     boolean allowsInnerDistinct();
 
-    /**
-     * Returns whether multiple distinct SQL measures are supported.
-     * @see AggregateCapabilities#multipleDistinctSqlMeasures()
-     */
     boolean allowsMultipleDistinctSqlMeasures();
 
-    /**
-     * Returns whether GROUPING SETS is supported.
-     * @see AggregateCapabilities#groupingSets()
-     */
     boolean supportsGroupingSets();
 
-    /**
-     * Returns whether expressions in GROUP BY are supported.
-     * @see AggregateCapabilities#groupByExpressions()
-     */
     boolean supportsGroupByExpressions();
 
-    /**
-     * Returns whether SELECT columns not in GROUP BY are allowed.
-     * @see AggregateCapabilities#selectNotInGroupBy()
-     */
-    boolean allowsSelectNotInGroupBy();
-
-    /**
-     * Returns whether aliases can be used in ORDER BY.
-     * @see OrderByCapabilities#allowsOrderByAlias()
-     */
     boolean allowsOrderByAlias();
 
-    /**
-     * Returns whether ORDER BY requires SELECT aliases.
-     * @see OrderByCapabilities#requiresOrderByAlias()
-     */
     boolean requiresOrderByAlias();
 
-    /**
-     * Returns whether GROUP BY requires SELECT aliases.
-     * @see OrderByCapabilities#requiresGroupByAlias()
-     */
     boolean requiresGroupByAlias();
 
-    /**
-     * Returns whether HAVING requires SELECT aliases.
-     * @see OrderByCapabilities#requiresHavingAlias()
-     */
     boolean requiresHavingAlias();
 
-    /**
-     * Returns whether UNION ORDER BY requires ordinal position.
-     * @see OrderByCapabilities#requiresUnionOrderByOrdinal()
-     */
     boolean requiresUnionOrderByOrdinal();
 
-    /**
-     * Returns whether UNION ORDER BY expression must be in SELECT clause.
-     * @see OrderByCapabilities#requiresUnionOrderByExprInSelect()
-     */
-    boolean requiresUnionOrderByExprToBeInSelectClause();
+    boolean requiresUnionOrderByExprInSelect();
 
-    /**
-     * Returns whether PERCENTILE_DISC function is supported.
-     * @see WindowFunctionCapabilities#percentileDisc()
-     */
-    boolean supportsPercentileDisc();
+    // Aggregation/window-function feature flags
+    // (supportsPercentileDisc/Cont, supportsListAgg, supportsNthValue,
+    // supportsNthValueIgnoreNulls) live on AggregationGenerator. They're
+    // exposed in WindowFunctionCapabilities below via the dialect's
+    // aggregationGenerator() — see Dialect.getWindowFunctionCapabilities().
 
-    /**
-     * Returns whether PERCENTILE_CONT function is supported.
-     * @see WindowFunctionCapabilities#percentileCont()
-     */
-    boolean supportsPercentileCont();
-
-    /**
-     * Returns whether list aggregation is supported (LISTAGG, GROUP_CONCAT, STRING_AGG).
-     * @see WindowFunctionCapabilities#listAgg()
-     */
-    boolean supportsListAgg();
-
-    /**
-     * Returns whether NTH_VALUE window function is supported.
-     * @see WindowFunctionCapabilities#nthValue()
-     */
-    default boolean supportsNthValue() {
-        return false;
-    }
-
-    /**
-     * Returns whether NTH_VALUE supports IGNORE NULLS / RESPECT NULLS syntax.
-     * @see WindowFunctionCapabilities#nthValueIgnoreNulls()
-     */
-    default boolean supportsNthValueIgnoreNulls() {
-        return false;
-    }
-
-    /**
-     * Returns whether NULLS FIRST/LAST syntax is supported in ORDER BY.
-     * @see OrderByCapabilities#supportsNullsLast()
-     */
     default boolean supportsNullsLast() {
         return true;
     }

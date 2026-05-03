@@ -21,20 +21,35 @@ import java.util.stream.Stream;
 public interface TypeInfo {
 
     String typeName();
+
     JDBCType dataType();
+
     int precision();
+
     Optional<String> literalPrefix();
+
     Optional<String> literalSuffix();
+
     Optional<String> createParams();
+
     Nullable nullable();
+
     boolean caseSensitive();
+
     Searchable searchable();
+
     boolean unsignedAttribute();
+
     boolean fixedPrecScale();
+
     boolean autoIncrement();
+
     Optional<String> localTypeName();
+
     short minimumScale();
+
     short maximumScale();
+
     int numPrecRadix();
 
     enum Nullable {
@@ -47,6 +62,7 @@ public interface TypeInfo {
             this.value = value;
         }
 
+        /** Look up the enum constant matching the JDBC int code. Throws if no match. */
         public static Nullable of(int value) {
             return Stream.of(Nullable.values()).filter(n -> n.value == value).findAny().orElse(null);
         }
@@ -62,6 +78,7 @@ public interface TypeInfo {
             this.value = value;
         }
 
+        /** Look up the enum constant matching the JDBC int code. Throws if no match. */
         public static Searchable of(int value) {
             return Stream.of(Searchable.values()).filter(n -> n.value == value).findAny().orElse(null);
         }

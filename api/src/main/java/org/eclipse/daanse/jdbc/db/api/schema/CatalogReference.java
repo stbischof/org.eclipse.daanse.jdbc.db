@@ -13,6 +13,5 @@
 */
 package org.eclipse.daanse.jdbc.db.api.schema;
 
-public interface CatalogReference extends Named {
-
+public record CatalogReference(String name) implements Named {
 }

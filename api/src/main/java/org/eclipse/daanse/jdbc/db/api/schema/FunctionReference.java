@@ -15,22 +15,9 @@ package org.eclipse.daanse.jdbc.db.api.schema;
 
 import java.util.Optional;
 
-/**
- * Reference to a user-defined or system function in a database
- */
-public interface FunctionReference extends Named {
+public record FunctionReference(Optional<SchemaReference> schema, String name, String specificName) implements Named {
 
-    /**
-     * The schema containing this function
-     *
-     * @return the schema reference, or empty if not applicable
-     */
-    Optional<SchemaReference> schema();
-
-    /**
-     * The specific name of this function (unique within its schema)
-     *
-     * @return the specific name
-     */
-    String specificName();
+    public FunctionReference(Optional<SchemaReference> schema, String name) {
+        this(schema, name, name);
+    }
 }

@@ -18,4 +18,8 @@ public interface ColumnDefinition {
     ColumnReference column();
 
     ColumnMetaData columnMetaData();
+
+    default ColumnReference reference() {
+        return column();
+    }
 }

@@ -13,20 +13,8 @@
 */
 package org.eclipse.daanse.jdbc.db.api.schema;
 
-import java.sql.DatabaseMetaData;
+public interface DropImportedKey extends Named {
 
-/**
- *
- * Imported Keys according *
- * {@link DatabaseMetaData#getImportedKeys(String, String, String)}
- */
-public interface DropImportedKey  extends Named {
-
-    /**
-     * The foreign key table {@link TableReference}
-     *
-     * @return
-     */
     TableReference table();
 
 }

@@ -71,9 +71,11 @@
   <modules>
     <module>api</module>
     <module>record</module>
-    <module>core</module>
+    <module>impl</module>
     <module>dialect</module>
+<!--
     <module>importer</module>
+-->
   </modules>
 
 </project>

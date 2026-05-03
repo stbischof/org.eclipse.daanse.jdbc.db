@@ -14,17 +14,26 @@
 */
 package org.eclipse.daanse.jdbc.db.dialect.api.type;
 
+/** Java result-set value type that best represents a JDBC column. */
 public enum BestFitColumnType {
-    /*OBJECT*/
+
+    /** Generic {@link Object} — fallback for unrecognized SQL types. */
     OBJECT,
-    /*DOUBLE*/
+
+    /** {@code double} — for {@code DOUBLE}, {@code FLOAT}, {@code REAL}. */
     DOUBLE,
-    /*INT*/
+
+    /** {@code int} — for {@code INTEGER} and smaller integer types. */
     INT,
-    /*LONG*/
+
+    /** {@code long} — for {@code BIGINT} and large integer types. */
     LONG,
-    /*STRING*/
+
+    /**
+     * {@link String} — for {@code CHAR}/{@code VARCHAR}/{@code TEXT}-like types.
+     */
     STRING,
-    /*DECIMAL*/
-    DECIMAL;
-    }
+
+    /** {@link java.math.BigDecimal} — for {@code DECIMAL}/{@code NUMERIC}. */
+    DECIMAL
+}

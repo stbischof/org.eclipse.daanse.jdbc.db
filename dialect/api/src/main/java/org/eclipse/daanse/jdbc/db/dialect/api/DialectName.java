@@ -23,22 +23,13 @@ import java.lang.annotation.Target;
 
 import org.osgi.service.component.annotations.ComponentPropertyType;
 
-/**
- * OSGi Component Property Type for defining a dialect name.
- */
 @ComponentPropertyType
 @Retention(RetentionPolicy.CLASS)
 @Target({ TYPE, METHOD, FIELD })
 public @interface DialectName {
 
-    /**
-     * The dialect name to be used as an OSGi component property.
-     */
     String value();
 
-    /**
-     * Property prefix used by OSGi DS to namespace the property.
-     */
     String PREFIX_ = DaanseDialectConstants.PREFIX + ".";
 
 }

@@ -15,8 +15,10 @@ package org.eclipse.daanse.jdbc.db.api.schema;
 
 import java.util.Optional;
 
-public interface ColumnReference extends Named {
+public record ColumnReference(Optional<TableReference> table, String name) implements Named {
 
-    Optional<TableReference> table();
-
+    /** Convenience: an unqualified column (no parent table). */
+    public ColumnReference(String name) {
+        this(Optional.empty(), name);
+    }
 }

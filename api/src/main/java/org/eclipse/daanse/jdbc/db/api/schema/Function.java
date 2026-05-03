@@ -14,59 +14,38 @@
 package org.eclipse.daanse.jdbc.db.api.schema;
 
 import java.sql.DatabaseMetaData;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-/**
- * User-defined or system function definition according to
- * {@link DatabaseMetaData#getFunctions(String, String, String)}
- */
-public interface Function {
+public non-sealed interface Function extends SchemaObject {
 
-    /**
-     * Reference to this function (name, schema, specific name)
-     *
-     * @return the function reference
-     */
     FunctionReference reference();
 
-    /**
-     * The type of this function
-     *
-     * @return the function type
-     */
     FunctionType functionType();
 
-    /**
-     * Explanatory comment on the function
-     *
-     * @return the remarks
-     */
     Optional<String> remarks();
 
-    /**
-     * The parameters and return value of this function
-     *
-     * @return the list of function columns
-     */
     List<FunctionColumn> columns();
 
-    /**
-     * Type of function
-     */
+    /** @return the function body, or empty if not available */
+    default Optional<String> body() {
+        return Optional.empty();
+    }
+
+    /** @return the full CREATE FUNCTION definition, or empty if not available */
+    default Optional<String> fullDefinition() {
+        return Optional.empty();
+    }
+
+    /** @return the last-modified time, or empty if not available */
+    default Optional<Instant> lastModified() {
+        return Optional.empty();
+    }
+
     enum FunctionType {
-        /**
-         * Cannot determine if a return value or table will be returned
-         */
-        UNKNOWN(DatabaseMetaData.functionResultUnknown),
-        /**
-         * Does not return a table
-         */
-        NO_TABLE(DatabaseMetaData.functionNoTable),
-        /**
-         * Returns a table
-         */
+        UNKNOWN(DatabaseMetaData.functionResultUnknown), NO_TABLE(DatabaseMetaData.functionNoTable),
         RETURNS_TABLE(DatabaseMetaData.functionReturnsTable);
 
         private final int value;
@@ -75,15 +54,17 @@ public interface Function {
             this.value = value;
         }
 
+        /**
+         * Raw JDBC integer constant for this enum value (per
+         * {@link java.sql.DatabaseMetaData}).
+         */
         public int getValue() {
             return value;
         }
 
+        /** Look up the enum constant matching the JDBC int code. Throws if no match. */
         public static FunctionType of(int value) {
-            return Stream.of(FunctionType.values())
-                    .filter(t -> t.value == value)
-                    .findFirst()
-                    .orElse(UNKNOWN);
+            return Stream.of(FunctionType.values()).filter(t -> t.value == value).findFirst().orElse(UNKNOWN);
         }
     }
 }

@@ -14,59 +14,38 @@
 package org.eclipse.daanse.jdbc.db.api.schema;
 
 import java.sql.DatabaseMetaData;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-/**
- * Stored procedure definition according to
- * {@link DatabaseMetaData#getProcedures(String, String, String)}
- */
-public interface Procedure {
+public non-sealed interface Procedure extends SchemaObject {
 
-    /**
-     * Reference to this procedure (name, schema, specific name)
-     *
-     * @return the procedure reference
-     */
     ProcedureReference reference();
 
-    /**
-     * The type of this procedure
-     *
-     * @return the procedure type
-     */
     ProcedureType procedureType();
 
-    /**
-     * Explanatory comment on the procedure
-     *
-     * @return the remarks
-     */
     Optional<String> remarks();
 
-    /**
-     * The parameters/columns of this procedure
-     *
-     * @return the list of procedure columns
-     */
     List<ProcedureColumn> columns();
 
-    /**
-     * Type of stored procedure
-     */
+    /** @return the procedure body, or empty if not available */
+    default Optional<String> body() {
+        return Optional.empty();
+    }
+
+    /** @return the full CREATE PROCEDURE definition, or empty if not available */
+    default Optional<String> fullDefinition() {
+        return Optional.empty();
+    }
+
+    /** @return the last-modified time, or empty if not available */
+    default Optional<Instant> lastModified() {
+        return Optional.empty();
+    }
+
     enum ProcedureType {
-        /**
-         * Cannot determine if a return value will be returned
-         */
-        UNKNOWN(DatabaseMetaData.procedureResultUnknown),
-        /**
-         * Does not return a return value
-         */
-        NO_RESULT(DatabaseMetaData.procedureNoResult),
-        /**
-         * Returns a return value
-         */
+        UNKNOWN(DatabaseMetaData.procedureResultUnknown), NO_RESULT(DatabaseMetaData.procedureNoResult),
         RETURNS_RESULT(DatabaseMetaData.procedureReturnsResult);
 
         private final int value;
@@ -75,15 +54,17 @@ public interface Procedure {
             this.value = value;
         }
 
+        /**
+         * Raw JDBC integer constant for this enum value (per
+         * {@link java.sql.DatabaseMetaData}).
+         */
         public int getValue() {
             return value;
         }
 
+        /** Look up the enum constant matching the JDBC int code. Throws if no match. */
         public static ProcedureType of(int value) {
-            return Stream.of(ProcedureType.values())
-                    .filter(t -> t.value == value)
-                    .findFirst()
-                    .orElse(UNKNOWN);
+            return Stream.of(ProcedureType.values()).filter(t -> t.value == value).findFirst().orElse(UNKNOWN);
         }
     }
 }

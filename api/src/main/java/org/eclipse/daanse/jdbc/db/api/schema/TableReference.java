@@ -15,7 +15,7 @@ package org.eclipse.daanse.jdbc.db.api.schema;
 
 import java.util.Optional;
 
-public interface TableReference extends Named {
+public record TableReference(Optional<SchemaReference> schema, String name, String type) implements Named {
 
     public static final String TYPE_TABLE = "TABLE";
     public static final String TYPE_VIEW = "VIEW";
@@ -25,8 +25,18 @@ public interface TableReference extends Named {
     public static final String TYPE_ALIAS = "ALIAS";
     public static final String TYPE_SYNONYM = "SYNONYM";
 
-    String type();
+    /** Convenience: an unqualified table (no schema), {@link #TYPE_TABLE}. */
+    public TableReference(String name) {
+        this(Optional.empty(), name, TYPE_TABLE);
+    }
 
-    Optional<SchemaReference> schema();
+    /** Convenience: an unqualified table (no schema) of the given JDBC type. */
+    public TableReference(String name, String type) {
+        this(Optional.empty(), name, type);
+    }
 
+    /** Convenience: a schema-qualified {@link #TYPE_TABLE}. */
+    public TableReference(Optional<SchemaReference> schema, String name) {
+        this(schema, name, TYPE_TABLE);
+    }
 }

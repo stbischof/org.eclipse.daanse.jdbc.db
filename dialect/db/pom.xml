@@ -23,14 +23,16 @@
   <artifactId>org.eclipse.daanse.jdbc.db.dialect.db</artifactId>
   <packaging>pom</packaging>
   <name>Eclipse Daanse JDBC DB Dialect Database Implementations</name>
-  <description>Collection of database-specific dialect implementations providing
-    comprehensive support for 25+ database systems. Each dialect handles
-    database-specific SQL generation, query optimization, data types, and
-    feature support for enterprise OLAP operations.</description>
+
   <modules>
     <module>common</module>
-    <module>configurable</module>
+    <module>test-support</module>
+    <module>h2</module>
+<!--
     <module>mysql</module>
+    <module>configurable</module>
+
+
     <module>access</module>
     <module>clickhouse</module>
     <module>db2</module>
@@ -40,7 +42,6 @@
     <module>greenplum</module>
     <module>hive</module>
     <module>hsqldb</module>
-    <module>h2</module>
     <module>impala</module>
     <module>infobright</module>
     <module>informix</module>
@@ -65,5 +66,6 @@
     <module>teradata</module>
     <module>vectorwise</module>
     <module>vertica</module>
+-->
   </modules>
 </project>

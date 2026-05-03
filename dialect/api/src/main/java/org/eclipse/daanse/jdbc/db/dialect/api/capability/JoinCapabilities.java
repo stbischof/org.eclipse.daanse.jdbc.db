@@ -14,48 +14,32 @@
 package org.eclipse.daanse.jdbc.db.dialect.api.capability;
 
 /**
- * Describes the JOIN and FROM clause capabilities of a SQL dialect.
- * <p>
- * This record groups all JOIN and subquery-related capability checks into a single,
- * cohesive object, making it easier to pass around and test for dialect capabilities.
- *
- * @param joinOn whether the dialect supports ANSI JOIN...ON syntax
- * @param asKeyword whether the dialect allows the AS keyword in FROM clause aliases
- * @param fromQuery whether the dialect allows subqueries in the FROM clause
+ * @param joinOn                    whether the dialect supports ANSI JOIN...ON
+ *                                  syntax
+ * @param asKeyword                 whether the dialect allows the AS keyword in
+ *                                  FROM clause aliases
+ * @param fromQuery                 whether the dialect allows subqueries in the
+ *                                  FROM clause
  * @param requiresAliasForFromQuery whether subqueries in FROM require an alias
  */
-public record JoinCapabilities(
-    boolean joinOn,
-    boolean asKeyword,
-    boolean fromQuery,
-    boolean requiresAliasForFromQuery
-) {
+public record JoinCapabilities(boolean joinOn, boolean asKeyword, boolean fromQuery,
+        boolean requiresAliasForFromQuery) {
 
-    /**
-     * Creates capabilities typical of modern ANSI SQL-compliant databases.
-     *
-     * @return JoinCapabilities with standard ANSI SQL features
-     */
+    /** @return JoinCapabilities with standard ANSI SQL features */
     public static JoinCapabilities standard() {
-        return new JoinCapabilities(
-            true,  // joinOn
-            true,  // asKeyword
-            true,  // fromQuery
-            true   // requiresAliasForFromQuery
+        return new JoinCapabilities(true, // joinOn
+                true, // asKeyword
+                true, // fromQuery
+                true // requiresAliasForFromQuery
         );
     }
 
-    /**
-     * Creates capabilities for databases that don't require subquery aliases.
-     *
-     * @return JoinCapabilities with optional subquery alias
-     */
+    /** @return JoinCapabilities with optional subquery alias */
     public static JoinCapabilities withOptionalAlias() {
-        return new JoinCapabilities(
-            true,  // joinOn
-            true,  // asKeyword
-            true,  // fromQuery
-            false  // requiresAliasForFromQuery
+        return new JoinCapabilities(true, // joinOn
+                true, // asKeyword
+                true, // fromQuery
+                false // requiresAliasForFromQuery
         );
     }
 }

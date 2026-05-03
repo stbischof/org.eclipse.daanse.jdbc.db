@@ -15,32 +15,14 @@ package org.eclipse.daanse.jdbc.db.api.meta;
 
 public interface DatabaseInfo {
 
-    /**
-     * Retrieves the major version number of the underlying database.
-     *
-     * @return the underlying database's major version
-     */
+    /** @return the underlying database's major version */
     int databaseMajorVersion();
 
-    /**
-     * Retrieves the minor version number of the underlying database.
-     *
-     * @return underlying database's minor version
-     */
+    /** @return underlying database's minor version */
     int databaseMinorVersion();
 
-    /**
-     * Retrieves the name of this database product.
-     *
-     * @return database product name
-     */
     String databaseProductName();
 
-    /**
-     * Retrieves the version number of this database product.
-     *
-     * @return database version number
-     */
     String databaseProductVersion();
 
 }

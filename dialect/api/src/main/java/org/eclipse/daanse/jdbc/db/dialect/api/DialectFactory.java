@@ -17,8 +17,18 @@ package org.eclipse.daanse.jdbc.db.dialect.api;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import javax.sql.DataSource;
+
 public interface DialectFactory {
 
-    Dialect createDialect(Connection connection) throws SQLException;
+    /** Build a dialect from a pre-captured snapshot — the canonical entry point. */
+    Dialect createDialect(DialectInitData init);
 
+    default Dialect createDialect(Connection connection) throws SQLException {
+        return createDialect(DialectInitData.fromConnection(connection));
+    }
+
+    default Dialect createDialect(DataSource dataSource) throws SQLException {
+        return createDialect(DialectInitData.fromDataSource(dataSource));
+    }
 }

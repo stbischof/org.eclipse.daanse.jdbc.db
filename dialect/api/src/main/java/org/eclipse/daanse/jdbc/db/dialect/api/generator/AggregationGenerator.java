@@ -6,136 +6,147 @@
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- *
- * Contributors:
- *   SmartCity Jena - initial
- *   Stefan Bischof (bipolis.org) - initial
  */
 package org.eclipse.daanse.jdbc.db.dialect.api.generator;
 
 import java.util.List;
 
-import org.eclipse.daanse.jdbc.db.dialect.api.order.OrderedColumn;
+import org.eclipse.daanse.jdbc.db.dialect.api.sql.OrderedColumn;
 
-/**
- * Interface for generating SQL aggregate function expressions in a dialect-specific manner.
- * <p>
- * This interface provides methods for generating advanced aggregate functions like
- * LISTAGG, NTH_VALUE, percentile functions, and bitwise aggregations.
- */
-public interface AggregationGenerator {
+public interface AggregationGenerator extends IdentifierQuoter {
 
-    /**
-     * Generates a list aggregation (string concatenation aggregate) expression.
-     * <p>
-     * Different databases use different functions:
-     * <ul>
-     *   <li>Oracle: LISTAGG</li>
-     *   <li>PostgreSQL: STRING_AGG</li>
-     *   <li>MySQL: GROUP_CONCAT</li>
-     *   <li>SQL Server: STRING_AGG</li>
-     * </ul>
-     *
-     * @param operand            expression to aggregate
-     * @param distinct           whether to use DISTINCT
-     * @param separator          separator between values
-     * @param coalesce           value to use for NULLs
-     * @param onOverflowTruncate behavior when result exceeds maximum length
-     * @param columns            columns for ORDER BY within the aggregate
-     * @return list aggregation expression
-     */
-    StringBuilder generateListAgg(CharSequence operand, boolean distinct, String separator,
-                                   String coalesce, String onOverflowTruncate, List<OrderedColumn> columns);
+    String DESC = " DESC";
+    String COMMA = ", ";
+    String OPEN_PAREN = "( ";
+    String CLOSE_PAREN = " )";
+    String ORDER_BY = "ORDER BY ";
+    String WITHIN_GROUP = " WITHIN GROUP (";
+    String OVER = "OVER ( ";
+    String IGNORE_NULLS = " IGNORE NULLS ";
+    String RESPECT_NULLS = " RESPECT NULLS ";
 
-    /**
-     * Generates an NTH_VALUE window function expression.
-     * <p>
-     * Returns the value of the nth row in the window frame.
-     *
-     * @param operand     expression to get value from
-     * @param ignoreNulls whether to ignore NULL values
-     * @param n           position (1-based) of the value to return
-     * @param columns     columns for ORDER BY within the window
-     * @return NTH_VALUE expression
-     */
-    StringBuilder generateNthValueAgg(CharSequence operand, boolean ignoreNulls, Integer n,
-                                       List<OrderedColumn> columns);
+    // -------------------- list / string aggregation --------------------
 
-    /**
-     * Generates a PERCENTILE_DISC aggregate expression.
-     * <p>
-     * Returns a value from the set that corresponds to the specified percentile.
-     *
-     * @param percentile percentage (0.0 to 1.0)
-     * @param desc       true for descending order
-     * @param tableName  table name (may be null)
-     * @param columnName column name
-     * @return PERCENTILE_DISC expression
-     */
-    StringBuilder generatePercentileDisc(double percentile, boolean desc, String tableName, String columnName);
+    default java.util.Optional<String> generateListAgg(CharSequence operand, boolean distinct, String separator,
+            String coalesce, String onOverflowTruncate, List<OrderedColumn> columns) {
+        return java.util.Optional.empty();
+    }
 
-    /**
-     * Generates a PERCENTILE_CONT aggregate expression.
-     * <p>
-     * Returns an interpolated value that would fall at the specified percentile.
-     *
-     * @param percentile percentage (0.0 to 1.0)
-     * @param desc       true for descending order
-     * @param tableName  table name (may be null)
-     * @param columnName column name
-     * @return PERCENTILE_CONT expression
-     */
-    StringBuilder generatePercentileCont(double percentile, boolean desc, String tableName, String columnName);
+    /** Whether list aggregation is supported by this dialect. */
+    default boolean supportsListAgg() {
+        return false;
+    }
 
-    /**
-     * Generates a bitwise aggregation expression for the specified operation.
-     * <p>
-     * This is the unified method for all bitwise aggregations. Different databases
-     * use different function names:
-     * <ul>
-     *   <li>MySQL: BIT_AND, BIT_OR, BIT_XOR</li>
-     *   <li>PostgreSQL: bit_and, bit_or, bit_xor (lowercase)</li>
-     *   <li>Oracle: BIT_AND_AGG, BIT_OR_AGG, BIT_XOR</li>
-     *   <li>H2: BIT_AND_AGG, BIT_OR_AGG, BIT_XOR_AGG, BIT_NAND_AGG, BIT_NOR_AGG, BIT_XNOR_AGG</li>
-     * </ul>
-     *
-     * @param operation the bitwise operation to perform
-     * @param operand   expression to aggregate
-     * @return bitwise aggregation expression
-     * @throws UnsupportedOperationException if the operation is not supported
-     */
-    StringBuilder generateBitAggregation(BitOperation operation, CharSequence operand);
+    // -------------------- NTH_VALUE --------------------
 
-    /**
-     * Checks if a specific bitwise aggregation operation is supported.
-     *
-     * @param operation the bitwise operation to check
-     * @return true if the operation is supported
-     */
-    boolean supportsBitAggregation(BitOperation operation);
+    default java.util.Optional<String> generateNthValueAgg(CharSequence operand, boolean ignoreNulls, Integer n,
+            List<OrderedColumn> columns) {
+        return java.util.Optional.empty();
+    }
+
+    default boolean supportsNthValue() {
+        return false;
+    }
+
+    default boolean supportsNthValueIgnoreNulls() {
+        return false;
+    }
+
+    // -------------------- PERCENTILE --------------------
+
+    /** Discrete percentile aggregate; empty when not supported. */
+    default java.util.Optional<String> generatePercentileDisc(double percentile, boolean desc, String tableName,
+            String columnName) {
+        return java.util.Optional.empty();
+    }
+
+    /** Continuous (interpolated) percentile aggregate; empty when not supported. */
+    default java.util.Optional<String> generatePercentileCont(double percentile, boolean desc, String tableName,
+            String columnName) {
+        return java.util.Optional.empty();
+    }
+
+    default boolean supportsPercentileDisc() {
+        return false;
+    }
+
+    default boolean supportsPercentileCont() {
+        return false;
+    }
+
+    // -------------------- bitwise aggregation --------------------
+
+    default java.util.Optional<String> generateBitAggregation(BitOperation operation, CharSequence operand) {
+        return java.util.Optional.empty();
+    }
+
+    /** Whether the given bitwise operation is supported. */
+    default boolean supportsBitAggregation(BitOperation operation) {
+        return false;
+    }
+
+    // -------------------- shared formatting helpers --------------------
+
+    default StringBuilder buildPercentileFunction(String functionName, double percentile, boolean desc,
+            String tableName, String columnName) {
+        StringBuilder buf = new StringBuilder(64);
+        buf.append(functionName).append("(").append(percentile).append(")").append(WITHIN_GROUP).append(ORDER_BY);
+        if (tableName != null) {
+            quoteIdentifier(buf, tableName, columnName);
+        } else {
+            quoteIdentifier(buf, columnName);
+        }
+        if (desc) {
+            buf.append(DESC);
+        }
+        buf.append(")");
+        return buf;
+    }
 
     /**
-     * Returns whether PERCENTILE_CONT aggregation is supported.
+     * @param supportsNullsHandling whether the engine accepts {@code IGNORE NULLS}/
+     *                              {@code RESPECT NULLS}
      */
-    boolean supportsPercentileContAgg();
+    default StringBuilder buildNthValueFunction(String functionName, CharSequence operand, boolean ignoreNulls,
+            Integer n, List<OrderedColumn> columns, boolean supportsNullsHandling) {
+        StringBuilder buf = new StringBuilder(64);
+        buf.append(functionName);
+        buf.append(OPEN_PAREN);
+        buf.append(operand);
+        buf.append(COMMA);
+        buf.append(n == null || n < 1 ? 1 : n);
+        buf.append(CLOSE_PAREN);
+        if (supportsNullsHandling) {
+            buf.append(ignoreNulls ? IGNORE_NULLS : RESPECT_NULLS);
+        }
+        buf.append(OVER);
+        if (columns != null && !columns.isEmpty()) {
+            buf.append(ORDER_BY);
+            buf.append(buildOrderedColumnsClause(columns));
+        }
+        buf.append(CLOSE_PAREN);
+        return buf;
+    }
 
-    /**
-     * Returns whether PERCENTILE_DISC aggregation is supported.
-     */
-    boolean supportsPercentileDiscAgg();
-
-    /**
-     * Returns whether PERCENTILE_DISC function is supported.
-     */
-    boolean supportsPercentileDisc();
-
-    /**
-     * Returns whether PERCENTILE_CONT function is supported.
-     */
-    boolean supportsPercentileCont();
-
-    /**
-     * Returns whether list aggregation (STRING_AGG, LISTAGG, GROUP_CONCAT) is supported.
-     */
-    boolean supportsListAgg();
+    default CharSequence buildOrderedColumnsClause(List<OrderedColumn> columns) {
+        StringBuilder buf = new StringBuilder(64);
+        if (columns == null) {
+            return buf;
+        }
+        boolean first = true;
+        for (OrderedColumn c : columns) {
+            if (!first) {
+                buf.append(COMMA);
+            }
+            if (c.tableName() != null) {
+                quoteIdentifier(buf, c.tableName(), c.columnName());
+            } else {
+                quoteIdentifier(buf, c.columnName());
+            }
+            c.sortDirection().ifPresent(dir -> buf.append(' ').append(dir.name()));
+            c.nullsOrder().ifPresent(no -> buf.append(" NULLS ").append(no.name()));
+            first = false;
+        }
+        return buf;
+    }
 }

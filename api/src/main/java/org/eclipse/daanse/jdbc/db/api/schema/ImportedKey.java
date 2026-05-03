@@ -17,86 +17,28 @@ import java.sql.DatabaseMetaData;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-/**
- *
- * Imported Keys according *
- * {@link DatabaseMetaData#getImportedKeys(String, String, String)}
- */
-public interface ImportedKey extends Named {
+public non-sealed interface ImportedKey extends Named, Constraint {
 
-    /**
-     * The primary key site of the {@link ColumnReference}
-     *
-     * @return the primary key column reference
-     */
+    /** @return the primary key column reference */
     ColumnReference primaryKeyColumn();
 
-    /**
-     * The foreign key site of the {@link ColumnReference}
-     *
-     * @return the foreign key column reference
-     */
+    /** @return the foreign key column reference */
     ColumnReference foreignKeyColumn();
 
-    /**
-     * Sequence number within a foreign key (for composite keys).
-     * A value of 1 represents the first column of the foreign key.
-     *
-     * @return sequence number within the foreign key
-     */
+    /** @return sequence number within the foreign key */
     int keySequence();
 
-    /**
-     * What happens to the foreign key when the primary key is updated.
-     *
-     * @return the update rule
-     */
     ReferentialAction updateRule();
 
-    /**
-     * What happens to the foreign key when the primary key is deleted.
-     *
-     * @return the delete rule
-     */
     ReferentialAction deleteRule();
 
-    /**
-     * The name of the primary key (may be null)
-     *
-     * @return the primary key name
-     */
     Optional<String> primaryKeyName();
 
-    /**
-     * Whether the evaluation of foreign key constraints can be deferred until commit.
-     *
-     * @return the deferrability
-     */
     Deferrability deferrability();
 
-    /**
-     * Referential action when primary key is updated or deleted
-     */
     enum ReferentialAction {
-        /**
-         * For update/delete: do not allow update/delete of primary key if it has been imported
-         */
-        NO_ACTION(DatabaseMetaData.importedKeyNoAction),
-        /**
-         * For update/delete: change imported key to agree with primary key update/delete
-         */
-        CASCADE(DatabaseMetaData.importedKeyCascade),
-        /**
-         * For update/delete: change imported key to NULL if its primary key has been updated/deleted
-         */
-        SET_NULL(DatabaseMetaData.importedKeySetNull),
-        /**
-         * For update/delete: change imported key to default values if its primary key has been updated/deleted
-         */
-        SET_DEFAULT(DatabaseMetaData.importedKeySetDefault),
-        /**
-         * For update/delete: same as NO_ACTION (for ODBC 2.x compatibility)
-         */
+        NO_ACTION(DatabaseMetaData.importedKeyNoAction), CASCADE(DatabaseMetaData.importedKeyCascade),
+        SET_NULL(DatabaseMetaData.importedKeySetNull), SET_DEFAULT(DatabaseMetaData.importedKeySetDefault),
         RESTRICT(DatabaseMetaData.importedKeyRestrict);
 
         private final int value;
@@ -105,33 +47,23 @@ public interface ImportedKey extends Named {
             this.value = value;
         }
 
+        /**
+         * Raw JDBC integer constant for this enum value (per
+         * {@link java.sql.DatabaseMetaData}).
+         */
         public int getValue() {
             return value;
         }
 
+        /** Look up the enum constant matching the JDBC int code. Throws if no match. */
         public static ReferentialAction of(int value) {
-            return Stream.of(ReferentialAction.values())
-                    .filter(r -> r.value == value)
-                    .findFirst()
-                    .orElse(NO_ACTION);
+            return Stream.of(ReferentialAction.values()).filter(r -> r.value == value).findFirst().orElse(NO_ACTION);
         }
     }
 
-    /**
-     * Deferrability of constraint checking
-     */
     enum Deferrability {
-        /**
-         * See SQL92 for definition
-         */
         INITIALLY_DEFERRED(DatabaseMetaData.importedKeyInitiallyDeferred),
-        /**
-         * See SQL92 for definition
-         */
         INITIALLY_IMMEDIATE(DatabaseMetaData.importedKeyInitiallyImmediate),
-        /**
-         * See SQL92 for definition
-         */
         NOT_DEFERRABLE(DatabaseMetaData.importedKeyNotDeferrable);
 
         private final int value;
@@ -140,15 +72,17 @@ public interface ImportedKey extends Named {
             this.value = value;
         }
 
+        /**
+         * Raw JDBC integer constant for this enum value (per
+         * {@link java.sql.DatabaseMetaData}).
+         */
         public int getValue() {
             return value;
         }
 
+        /** Look up the enum constant matching the JDBC int code. Throws if no match. */
         public static Deferrability of(int value) {
-            return Stream.of(Deferrability.values())
-                    .filter(d -> d.value == value)
-                    .findFirst()
-                    .orElse(NOT_DEFERRABLE);
+            return Stream.of(Deferrability.values()).filter(d -> d.value == value).findFirst().orElse(NOT_DEFERRABLE);
         }
     }
 }

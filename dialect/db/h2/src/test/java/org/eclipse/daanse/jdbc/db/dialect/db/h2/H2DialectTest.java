@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.eclipse.daanse.jdbc.db.dialect.api.generator.BitOperation;
-import org.eclipse.daanse.jdbc.db.dialect.api.order.NullsOrder;
-import org.eclipse.daanse.jdbc.db.dialect.api.order.OrderedColumn;
-import org.eclipse.daanse.jdbc.db.dialect.api.order.SortDirection;
+import org.eclipse.daanse.jdbc.db.dialect.api.generator.NullsOrder;
+import org.eclipse.daanse.jdbc.db.dialect.api.generator.SortDirection;
+import org.eclipse.daanse.jdbc.db.dialect.api.sql.OrderedColumn;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -45,12 +45,12 @@ class H2DialectTest {
         when(connection.getMetaData()).thenReturn(metaData);
         when(metaData.getDatabaseProductName()).thenReturn("H2");
         when(metaData.getDatabaseProductVersion()).thenReturn("2.2.224");
-        dialect = new H2Dialect(connection);
+        dialect = new H2Dialect(org.eclipse.daanse.jdbc.db.dialect.api.DialectInitData.fromConnection(connection));
     }
 
     @Test
     void testGetDialectName() {
-        assertEquals("h2", dialect.getDialectName());
+        assertEquals("h2", dialect.name());
     }
 
     @Nested
@@ -65,37 +65,37 @@ class H2DialectTest {
 
         @Test
         void testGenerateBitAggregation_AND() {
-            String result = dialect.generateBitAggregation(BitOperation.AND, "column1").toString();
+            String result = dialect.generateBitAggregation(BitOperation.AND, "column1").orElseThrow();
             assertEquals("BIT_AND_AGG(column1)", result);
         }
 
         @Test
         void testGenerateBitAggregation_OR() {
-            String result = dialect.generateBitAggregation(BitOperation.OR, "column1").toString();
+            String result = dialect.generateBitAggregation(BitOperation.OR, "column1").orElseThrow();
             assertEquals("BIT_OR_AGG(column1)", result);
         }
 
         @Test
         void testGenerateBitAggregation_XOR() {
-            String result = dialect.generateBitAggregation(BitOperation.XOR, "column1").toString();
+            String result = dialect.generateBitAggregation(BitOperation.XOR, "column1").orElseThrow();
             assertEquals("BIT_XOR_AGG(column1)", result);
         }
 
         @Test
         void testGenerateBitAggregation_NAND() {
-            String result = dialect.generateBitAggregation(BitOperation.NAND, "column1").toString();
+            String result = dialect.generateBitAggregation(BitOperation.NAND, "column1").orElseThrow();
             assertEquals("BIT_NAND_AGG(column1)", result);
         }
 
         @Test
         void testGenerateBitAggregation_NOR() {
-            String result = dialect.generateBitAggregation(BitOperation.NOR, "column1").toString();
+            String result = dialect.generateBitAggregation(BitOperation.NOR, "column1").orElseThrow();
             assertEquals("BIT_NOR_AGG(column1)", result);
         }
 
         @Test
         void testGenerateBitAggregation_NXOR() {
-            String result = dialect.generateBitAggregation(BitOperation.NXOR, "column1").toString();
+            String result = dialect.generateBitAggregation(BitOperation.NXOR, "column1").orElseThrow();
             assertEquals("BIT_XNOR_AGG(column1)", result);
         }
     }
@@ -136,52 +136,52 @@ class H2DialectTest {
 
         @Test
         void testGenerateListAgg_Simple() {
-            String result = dialect.generateListAgg("column1", false, null, null, null, null).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, null, null).orElseThrow();
             assertEquals("LISTAGG( column1, ', ')", result);
         }
 
         @Test
         void testGenerateListAgg_WithDistinct() {
-            String result = dialect.generateListAgg("column1", true, null, null, null, null).toString();
+            String result = dialect.generateListAgg("column1", true, null, null, null, null).orElseThrow();
             assertEquals("LISTAGG( DISTINCT column1, ', ')", result);
         }
 
         @Test
         void testGenerateListAgg_WithSeparator() {
-            String result = dialect.generateListAgg("column1", false, ";", null, null, null).toString();
+            String result = dialect.generateListAgg("column1", false, ";", null, null, null).orElseThrow();
             assertEquals("LISTAGG( column1, ';')", result);
         }
 
         @Test
         void testGenerateListAgg_WithCoalesce() {
-            String result = dialect.generateListAgg("column1", false, null, "N/A", null, null).toString();
+            String result = dialect.generateListAgg("column1", false, null, "N/A", null, null).orElseThrow();
             assertEquals("LISTAGG( COALESCE(column1, 'N/A'), ', ')", result);
         }
 
         @Test
         void testGenerateListAgg_WithOverflowTruncate() {
-            String result = dialect.generateListAgg("column1", false, null, null, "...", null).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, "...", null).orElseThrow();
             assertEquals("LISTAGG( column1, ', ' ON OVERFLOW TRUNCATE '...' WITHOUT COUNT)", result);
         }
 
         @Test
         void testGenerateListAgg_WithOrderBy_DbDefault() {
             List<OrderedColumn> columns = List.of(new OrderedColumn("id", null));
-            String result = dialect.generateListAgg("column1", false, null, null, null, columns).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, null, columns).orElseThrow();
             assertEquals("LISTAGG( column1, ', ') WITHIN GROUP (ORDER BY id)", result);
         }
 
         @Test
         void testGenerateListAgg_WithOrderByAsc() {
             List<OrderedColumn> columns = List.of(new OrderedColumn("id", null, SortDirection.ASC));
-            String result = dialect.generateListAgg("column1", false, null, null, null, columns).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, null, columns).orElseThrow();
             assertEquals("LISTAGG( column1, ', ') WITHIN GROUP (ORDER BY id ASC)", result);
         }
 
         @Test
         void testGenerateListAgg_WithOrderByDesc() {
             List<OrderedColumn> columns = List.of(new OrderedColumn("id", null, SortDirection.DESC));
-            String result = dialect.generateListAgg("column1", false, null, null, null, columns).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, null, columns).orElseThrow();
             assertEquals("LISTAGG( column1, ', ') WITHIN GROUP (ORDER BY id DESC)", result);
         }
 
@@ -189,7 +189,7 @@ class H2DialectTest {
         void testGenerateListAgg_WithNullsFirst() {
             List<OrderedColumn> columns = List
                     .of(new OrderedColumn("id", null, Optional.empty(), Optional.of(NullsOrder.FIRST)));
-            String result = dialect.generateListAgg("column1", false, null, null, null, columns).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, null, columns).orElseThrow();
             assertEquals("LISTAGG( column1, ', ') WITHIN GROUP (ORDER BY id NULLS FIRST)", result);
         }
 
@@ -197,7 +197,7 @@ class H2DialectTest {
         void testGenerateListAgg_WithNullsLast() {
             List<OrderedColumn> columns = List
                     .of(new OrderedColumn("id", null, Optional.empty(), Optional.of(NullsOrder.LAST)));
-            String result = dialect.generateListAgg("column1", false, null, null, null, columns).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, null, columns).orElseThrow();
             assertEquals("LISTAGG( column1, ', ') WITHIN GROUP (ORDER BY id NULLS LAST)", result);
         }
 
@@ -205,7 +205,7 @@ class H2DialectTest {
         void testGenerateListAgg_WithDescNullsFirst() {
             List<OrderedColumn> columns = List
                     .of(new OrderedColumn("id", null, Optional.of(SortDirection.DESC), Optional.of(NullsOrder.FIRST)));
-            String result = dialect.generateListAgg("column1", false, null, null, null, columns).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, null, columns).orElseThrow();
             assertEquals("LISTAGG( column1, ', ') WITHIN GROUP (ORDER BY id DESC NULLS FIRST)", result);
         }
 
@@ -213,7 +213,7 @@ class H2DialectTest {
         void testGenerateListAgg_WithAscNullsLast() {
             List<OrderedColumn> columns = List
                     .of(new OrderedColumn("id", null, Optional.of(SortDirection.ASC), Optional.of(NullsOrder.LAST)));
-            String result = dialect.generateListAgg("column1", false, null, null, null, columns).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, null, columns).orElseThrow();
             assertEquals("LISTAGG( column1, ', ') WITHIN GROUP (ORDER BY id ASC NULLS LAST)", result);
         }
     }
@@ -225,28 +225,28 @@ class H2DialectTest {
         @Test
         void testOrderedColumn_FactoryAsc() {
             List<OrderedColumn> columns = List.of(OrderedColumn.asc("id"));
-            String result = dialect.generateListAgg("column1", false, null, null, null, columns).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, null, columns).orElseThrow();
             assertEquals("LISTAGG( column1, ', ') WITHIN GROUP (ORDER BY id ASC)", result);
         }
 
         @Test
         void testOrderedColumn_FactoryDesc() {
             List<OrderedColumn> columns = List.of(OrderedColumn.desc("id"));
-            String result = dialect.generateListAgg("column1", false, null, null, null, columns).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, null, columns).orElseThrow();
             assertEquals("LISTAGG( column1, ', ') WITHIN GROUP (ORDER BY id DESC)", result);
         }
 
         @Test
         void testOrderedColumn_FactoryOf() {
             List<OrderedColumn> columns = List.of(OrderedColumn.of("id", SortDirection.DESC, NullsOrder.FIRST));
-            String result = dialect.generateListAgg("column1", false, null, null, null, columns).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, null, columns).orElseThrow();
             assertEquals("LISTAGG( column1, ', ') WITHIN GROUP (ORDER BY id DESC NULLS FIRST)", result);
         }
 
         @Test
         void testOrderedColumn_FactoryOfNullDirection() {
             List<OrderedColumn> columns = List.of(OrderedColumn.of("id", null, NullsOrder.LAST));
-            String result = dialect.generateListAgg("column1", false, null, null, null, columns).toString();
+            String result = dialect.generateListAgg("column1", false, null, null, null, columns).orElseThrow();
             assertEquals("LISTAGG( column1, ', ') WITHIN GROUP (ORDER BY id NULLS LAST)", result);
         }
     }
@@ -257,14 +257,14 @@ class H2DialectTest {
 
         @Test
         void testGeneratePercentileDisc() {
-            String result = dialect.generatePercentileDisc(0.5, false, "table1", "column1").toString();
+            String result = dialect.generatePercentileDisc(0.5, false, "table1", "column1").orElseThrow();
             assertTrue(result.contains("PERCENTILE_DISC"));
             assertTrue(result.contains("0.5"));
         }
 
         @Test
         void testGeneratePercentileCont() {
-            String result = dialect.generatePercentileCont(0.75, false, "table1", "column1").toString();
+            String result = dialect.generatePercentileCont(0.75, false, "table1", "column1").orElseThrow();
             assertTrue(result.contains("PERCENTILE_CONT"));
             assertTrue(result.contains("0.75"));
         }

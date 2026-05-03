@@ -15,7 +15,10 @@ package org.eclipse.daanse.jdbc.db.api.schema;
 
 import java.util.Optional;
 
-public interface SchemaReference extends Named {
+public record SchemaReference(Optional<CatalogReference> catalog, String name) implements Named {
 
-    Optional<CatalogReference> catalog();
+    /** Convenience: a schema with no catalog. */
+    public SchemaReference(String name) {
+        this(Optional.empty(), name);
+    }
 }

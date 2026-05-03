@@ -14,10 +14,13 @@
 
 package org.eclipse.daanse.jdbc.db.api.schema;
 
-public interface TableDefinition {
+public non-sealed interface TableDefinition extends SchemaObject {
 
     TableReference table();
 
     TableMetaData tableMetaData();
 
+    default TableReference reference() {
+        return table();
+    }
 }

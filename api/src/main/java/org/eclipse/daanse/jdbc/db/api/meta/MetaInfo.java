@@ -13,43 +13,17 @@
 */
 package org.eclipse.daanse.jdbc.db.api.meta;
 
-import java.sql.DatabaseMetaData;
 import java.util.List;
 
-/**
- * MetaInfo holds all essential values of the {@link DatabaseMetaData} in an
- * easy accessible way.
- */
 public interface MetaInfo {
 
-    /**
-     * Subset of the {@link MetaInfo} holds all Database related values of the
-     * {@link DatabaseMetaData}
-     */
     DatabaseInfo databaseInfo();
 
-    /**
-     * Subset of the {@link MetaInfo} holds all values of the
-     * {@link DatabaseMetaData} that are relevant for quoting.
-     */
     IdentifierInfo identifierInfo();
 
-    /**
-     * A list of all TypeInfo according {@link DatabaseMetaData#getTypeInfo()}
-     *
-     * @return the typeInfo
-     */
     List<TypeInfo> typeInfos();
 
-    /**
-     * Subset of the {@link MetaInfo} holds all Structure related values of the
-     * {@link DatabaseMetaData} like informations about: Catalogs, Schema, Tables
-     * and Columns.
-     */
     StructureInfo structureInfo();
 
-    /**
-     * @return indexInfo list
-     */
     List<IndexInfo> indexInfos();
 }

@@ -15,22 +15,9 @@ package org.eclipse.daanse.jdbc.db.api.schema;
 
 import java.util.Optional;
 
-/**
- * Reference to a stored procedure in a database
- */
-public interface ProcedureReference extends Named {
+public record ProcedureReference(Optional<SchemaReference> schema, String name, String specificName) implements Named {
 
-    /**
-     * The schema containing this procedure
-     *
-     * @return the schema reference, or empty if not applicable
-     */
-    Optional<SchemaReference> schema();
-
-    /**
-     * The specific name of this procedure (unique within its schema)
-     *
-     * @return the specific name
-     */
-    String specificName();
+    public ProcedureReference(Optional<SchemaReference> schema, String name) {
+        this(schema, name, name);
+    }
 }

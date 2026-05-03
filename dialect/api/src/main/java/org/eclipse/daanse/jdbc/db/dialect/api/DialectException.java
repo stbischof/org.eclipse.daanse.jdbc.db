@@ -15,16 +15,21 @@ package org.eclipse.daanse.jdbc.db.dialect.api;
 
 import java.sql.SQLException;
 
-/**
- * Runtime exception for dialect-related errors.
- */
 @SuppressWarnings("serial")
 public class DialectException extends RuntimeException {
 
+    /**
+     * Wrap a {@link SQLException} from JDBC metadata access with a contextual
+     * message.
+     */
     public DialectException(String msg, SQLException e) {
         super(msg, e);
     }
 
+    /**
+     * Wrap any underlying exception so callers see a single dialect-typed
+     * throwable.
+     */
     public DialectException(Exception e) {
         super(e);
     }

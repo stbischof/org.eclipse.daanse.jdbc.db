@@ -13,36 +13,19 @@
  */
 package org.eclipse.daanse.jdbc.db.dialect.api.type;
 
-/**
- * Represents the quoting style used for SQL identifiers in different database dialects.
- * <p>
- * Different databases use different characters to quote identifiers (table names,
- * column names, etc.) to allow special characters or reserved words.
- */
+/** Identifier quote characters supported by JDBC engines. */
 public enum QuoteStyle {
 
-    /**
-     * ANSI SQL standard double quotes: "identifier"
-     * Used by: Oracle, PostgreSQL, DB2, H2, Derby, HSQLDB
-     */
+    /** ANSI standard double quotes ({@code "name"}) — Postgres, Oracle, Db2. */
     DOUBLE_QUOTE("\"", "\""),
 
-    /**
-     * Backtick quotes: `identifier`
-     * Used by: MySQL, MariaDB
-     */
+    /** MySQL/MariaDB-style backticks ({@code `name`}). */
     BACKTICK("`", "`"),
 
-    /**
-     * Square bracket quotes: [identifier]
-     * Used by: Microsoft SQL Server, Microsoft Access, Sybase
-     */
+    /** SQL Server / Sybase delimited identifiers ({@code [name]}). */
     SQUARE_BRACKET("[", "]"),
 
-    /**
-     * No quoting - identifiers are used as-is.
-     * Rarely used; most dialects require some form of quoting.
-     */
+    /** No quoting — emitted SQL exposes the identifier verbatim. */
     NONE("", "");
 
     private final String openQuote;
@@ -53,29 +36,20 @@ public enum QuoteStyle {
         this.closeQuote = closeQuote;
     }
 
-    /**
-     * Returns the opening quote character(s).
-     *
-     * @return the opening quote string
-     */
+    /** @return the opening quote character (empty for {@link #NONE}) */
     public String openQuote() {
         return openQuote;
     }
 
-    /**
-     * Returns the closing quote character(s).
-     *
-     * @return the closing quote string
-     */
+    /** @return the closing quote character (empty for {@link #NONE}) */
     public String closeQuote() {
         return closeQuote;
     }
 
     /**
-     * Quotes the given identifier using this quote style.
-     *
-     * @param identifier the identifier to quote
-     * @return the quoted identifier
+     * @param identifier identifier to wrap; may be {@code null}
+     * @return identifier wrapped in this style's quotes; the input unchanged when
+     *         this style is {@link #NONE} or {@code identifier} is {@code null}
      */
     public String quote(String identifier) {
         if (this == NONE || identifier == null) {
@@ -85,10 +59,8 @@ public enum QuoteStyle {
     }
 
     /**
-     * Appends the quoted identifier to the given StringBuilder.
-     *
-     * @param buf the StringBuilder to append to
-     * @param identifier the identifier to quote
+     * @param buf        the {@link StringBuilder} to append to
+     * @param identifier identifier to append; {@code null} appends nothing
      */
     public void quote(StringBuilder buf, String identifier) {
         if (identifier == null) {
