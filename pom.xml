@@ -73,9 +73,7 @@
     <module>record</module>
     <module>impl</module>
     <module>dialect</module>
-<!--
     <module>importer</module>
--->
   </modules>
 
 </project>

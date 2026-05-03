@@ -34,12 +34,12 @@ import javax.sql.DataSource;
 
 import org.eclipse.daanse.io.fs.watcher.api.FileSystemWatcherWhiteboardConstants;
 import org.eclipse.daanse.jdbc.db.api.DatabaseService;
+import org.eclipse.daanse.jdbc.db.api.MetadataProvider;
 import org.eclipse.daanse.jdbc.db.api.schema.ColumnDefinition;
 import org.eclipse.daanse.jdbc.db.api.schema.TableDefinition;
 import org.eclipse.daanse.jdbc.db.api.schema.TableReference;
+import org.eclipse.daanse.jdbc.db.api.schema.SchemaReference;
 import org.eclipse.daanse.jdbc.db.importer.csv.api.Constants;
-import org.eclipse.daanse.jdbc.db.record.schema.SchemaReferenceR;
-import org.eclipse.daanse.jdbc.db.record.schema.TableReferenceR;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -147,12 +147,14 @@ class CscDataLoaderTest {
         copy("csv/test.csv");
         Thread.sleep(1000);
 
-        TableReference table = new TableReferenceR("test");
+        TableReference table = new TableReference("test");
 
-        List<TableDefinition> tableDefinitions = databaseService.getTableDefinitions(metaData, table);
+        List<TableDefinition> tableDefinitions = databaseService.getTableDefinitions(connection,
+                MetadataProvider.EMPTY, table);
         assertThat(tableDefinitions).hasSize(1);
 
-        List<ColumnDefinition> columnDefinitions = databaseService.getColumnDefinitions(metaData, table);
+        List<ColumnDefinition> columnDefinitions = databaseService.getColumnDefinitions(connection,
+                MetadataProvider.EMPTY, table);
         assertThat(columnDefinitions).hasSize(10);
     }
 
@@ -168,11 +170,13 @@ class CscDataLoaderTest {
         copy("csv/schema1/test1.csv");
         Thread.sleep(1000);
 
-        TableReference table = new TableReferenceR(Optional.of(new SchemaReferenceR("schema1")), "test1");
-        List<TableDefinition> tableDefinitions = databaseService.getTableDefinitions(metaData, table);
+        TableReference table = new TableReference(Optional.of(new SchemaReference("schema1")), "test1");
+        List<TableDefinition> tableDefinitions = databaseService.getTableDefinitions(connection,
+                MetadataProvider.EMPTY, table);
         assertThat(tableDefinitions).hasSize(1);
 
-        List<ColumnDefinition> columnDefinitions = databaseService.getColumnDefinitions(metaData, table);
+        List<ColumnDefinition> columnDefinitions = databaseService.getColumnDefinitions(connection,
+                MetadataProvider.EMPTY, table);
         assertThat(columnDefinitions).hasSize(10);
 
     }

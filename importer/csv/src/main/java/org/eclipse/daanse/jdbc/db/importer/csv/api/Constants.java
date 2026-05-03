@@ -13,9 +13,6 @@
 */
 package org.eclipse.daanse.jdbc.db.importer.csv.api;
 
-/**
- *
- */
 public class Constants {
     private Constants() {
     }

@@ -37,7 +37,6 @@ import org.eclipse.daanse.io.fs.watcher.api.EventKind;
 import org.eclipse.daanse.io.fs.watcher.api.FileSystemWatcherListener;
 import org.eclipse.daanse.io.fs.watcher.api.propertytypes.FileSystemWatcherListenerProperties;
 import org.eclipse.daanse.jdbc.db.api.DatabaseService;
-import org.eclipse.daanse.jdbc.db.api.SqlStatementGenerator;
 import org.eclipse.daanse.jdbc.db.api.meta.MetaInfo;
 import org.eclipse.daanse.jdbc.db.api.schema.ColumnDefinition;
 import org.eclipse.daanse.jdbc.db.api.schema.ColumnMetaData;
@@ -45,18 +44,12 @@ import org.eclipse.daanse.jdbc.db.api.schema.ColumnReference;
 import org.eclipse.daanse.jdbc.db.api.schema.SchemaReference;
 import org.eclipse.daanse.jdbc.db.api.schema.TableDefinition;
 import org.eclipse.daanse.jdbc.db.api.schema.TableReference;
-import org.eclipse.daanse.jdbc.db.api.sql.InsertSqlStatement;
+import org.eclipse.daanse.jdbc.db.dialect.api.Dialect;
+import org.eclipse.daanse.jdbc.db.dialect.api.DialectFactory;
 import org.eclipse.daanse.jdbc.db.importer.csv.api.Constants;
-import org.eclipse.daanse.jdbc.db.record.schema.ColumnDefinitionR;
-import org.eclipse.daanse.jdbc.db.record.schema.ColumnMetaDataR;
-import org.eclipse.daanse.jdbc.db.record.schema.ColumnReferenceR;
-import org.eclipse.daanse.jdbc.db.record.schema.SchemaReferenceR;
-import org.eclipse.daanse.jdbc.db.record.schema.TableDefinitionR;
-import org.eclipse.daanse.jdbc.db.record.schema.TableReferenceR;
-import org.eclipse.daanse.jdbc.db.record.sql.CreateContainerSqlStatementR;
-import org.eclipse.daanse.jdbc.db.record.sql.CreateSchemaSqlStatementR;
-import org.eclipse.daanse.jdbc.db.record.sql.DropContainerSqlStatementR;
-import org.eclipse.daanse.jdbc.db.record.sql.InsertSqlStatementR;
+import org.eclipse.daanse.jdbc.db.record.schema.ColumnDefinitionRecord;
+import org.eclipse.daanse.jdbc.db.record.schema.ColumnMetaDataRecord;
+import org.eclipse.daanse.jdbc.db.record.schema.TableDefinitionRecord;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -91,8 +84,11 @@ public class CsvDataImporter implements FileSystemWatcherListener {
     @Reference
     DatabaseService databaseService;
 
+    @Reference
+    DialectFactory dialectFactory;
+
     private CsvDataImporterConfig config;
-    private SqlStatementGenerator sqlStatementGenerator;
+    private Dialect dialect;
 
     private Path basePath;
     MetaInfo metaInfo;
@@ -101,13 +97,14 @@ public class CsvDataImporter implements FileSystemWatcherListener {
     public void activate(CsvDataImporterConfig config) throws SQLException {
         this.config = config;
         metaInfo = databaseService.createMetaInfo(dataSource);
-        sqlStatementGenerator = databaseService.createSqlStatementGenerator(metaInfo);
+        dialect = dialectFactory.createDialect(
+                org.eclipse.daanse.jdbc.db.dialect.api.DialectInitData.fromDataSource(dataSource));
     }
 
     @Deactivate
     public void deactivate() {
         config = null;
-        sqlStatementGenerator = null;
+        dialect = null;
     }
 
     private void checkPathAndLoadCsv(Path path) {
@@ -138,8 +135,7 @@ public class CsvDataImporter implements FileSystemWatcherListener {
                 return;
             }
 
-            String statementCreateSchema = sqlStatementGenerator
-                    .getSqlOfStatement(new CreateSchemaSqlStatementR(s, true));
+            String statementCreateSchema = dialect.ddlGenerator().createSchema(s.name(), true);
 
             try {
                 connection.createStatement().execute(statementCreateSchema);
@@ -150,8 +146,8 @@ public class CsvDataImporter implements FileSystemWatcherListener {
             }
         });
 
-        TableReference tableRef = new TableReferenceR(schema, fileName, "TABLE");
-        TableDefinition tableDefinition=new TableDefinitionR(tableRef);
+        TableReference tableRef = new TableReference(schema, fileName, "TABLE");
+        TableDefinition tableDefinition=new TableDefinitionRecord(tableRef);
         dropTable(connection, tableRef);
 
         if (!path.toFile().exists()) {
@@ -184,11 +180,7 @@ public class CsvDataImporter implements FileSystemWatcherListener {
     private void insertTable(Connection connection, CloseableIterator<NamedCsvRecord> it,
             List<ColumnDefinition> headersTypeList, TableReference table) throws SQLException {
 
-        List<ColumnReference> columns = headersTypeList.stream().map(ColumnDefinition::column).toList();
-        List<String> values = headersTypeList.stream().map(c -> "?").toList();
-        InsertSqlStatement insertSqlStatement = new InsertSqlStatementR(table, columns, values);
-
-        String sql = sqlStatementGenerator.getSqlOfStatement(insertSqlStatement);
+        String sql = dialect.ddlGenerator().insertInto(table, headersTypeList);
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             batchExecute(connection, ps, it, headersTypeList);
@@ -200,7 +192,7 @@ public class CsvDataImporter implements FileSystemWatcherListener {
     private void dropTable(Connection connection, TableReference table) throws SQLException {
         try {
 
-            String sqlDropTable = sqlStatementGenerator.getSqlOfStatement(new DropContainerSqlStatementR(table, true));
+            String sqlDropTable = dialect.ddlGenerator().dropTable(table, true);
             try (Statement stmnt = connection.createStatement()) {
                 stmnt.execute(sqlDropTable);
             }
@@ -214,11 +206,10 @@ public class CsvDataImporter implements FileSystemWatcherListener {
             throws SQLException {
         try (Statement stmt = connection.createStatement();) {
 
-            CreateContainerSqlStatementR statement = new CreateContainerSqlStatementR(table, headersTypeList, true);
+            String sql = dialect.ddlGenerator().createTable(table, headersTypeList, null, true);
 
-            LOGGER.debug("Created table in given database. {}", statement);
+            LOGGER.debug("Created table in given database. {}", sql);
 
-            String sql = sqlStatementGenerator.getSqlOfStatement(statement);
             stmt.execute(sql);
             connection.commit();
         } catch (SQLException e) {
@@ -233,7 +224,7 @@ public class CsvDataImporter implements FileSystemWatcherListener {
             return Optional.empty();
         }
         String fileName = parent.getFileName().toString();
-        return Optional.of(new SchemaReferenceR(fileName));
+        return Optional.of(new SchemaReference(fileName));
     }
 
     private void batchExecute(Connection connection, PreparedStatement ps, CloseableIterator<NamedCsvRecord> it,
@@ -346,15 +337,15 @@ public class CsvDataImporter implements FileSystemWatcherListener {
         List<ColumnDefinition> result = new ArrayList<>();
         if (types != null) {
             for (String header : types.getHeader()) {
-                ColumnMetaDataR sqlType = parseColumnDataType(types.getField(header));
-                ColumnDefinition dbc = new ColumnDefinitionR(new ColumnReferenceR(header), sqlType);
+                ColumnMetaDataRecord sqlType = parseColumnDataType(types.getField(header));
+                ColumnDefinition dbc = new ColumnDefinitionRecord(new ColumnReference(header), sqlType);
                 result.add(dbc);
             }
         }
         return result;
     }
 
-    private ColumnMetaDataR parseColumnDataType(String stringType) {
+    private ColumnMetaDataRecord parseColumnDataType(String stringType) {
         int indexStart = stringType.indexOf("(");
         int indexEnd = stringType.indexOf(")");
 
@@ -386,8 +377,7 @@ public class CsvDataImporter implements FileSystemWatcherListener {
             }
         }
 
-        return new ColumnMetaDataR(jdbcType, jdbcType.getName(), columnSize, decimalDigits, OptionalInt.empty(),
-                OptionalInt.empty(), ColumnMetaData.Nullability.NULLABLE, OptionalInt.empty(),
+        return new ColumnMetaDataRecord(jdbcType, jdbcType.getName(), columnSize, decimalDigits, OptionalInt.empty(), ColumnMetaData.Nullability.NULLABLE, OptionalInt.empty(),
                 java.util.Optional.empty(), java.util.Optional.empty(),
                 ColumnMetaData.AutoIncrement.NO, ColumnMetaData.GeneratedColumn.NO);
     }
@@ -408,10 +398,8 @@ public class CsvDataImporter implements FileSystemWatcherListener {
         try (Connection connection = dataSource.getConnection()) {
             Optional<SchemaReference> schema = getSchemaFromPath(path);
 
-            DropContainerSqlStatementR dropStatement = new DropContainerSqlStatementR(
-                    new TableReferenceR(schema, tableName, "TABLE"), true);
-
-            String sql = sqlStatementGenerator.getSqlOfStatement(dropStatement);
+            TableReference targetTable = new TableReference(schema, tableName, "TABLE");
+            String sql = dialect.ddlGenerator().dropTable(targetTable, true);
 
             try (Statement stmnt = connection.createStatement()) {
                 stmnt.execute(sql);
