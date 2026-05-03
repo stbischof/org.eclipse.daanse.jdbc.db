@@ -30,6 +30,7 @@
     <module>h2</module>
     <module>mysql</module>
     <module>oracle</module>
+    <module>postgresql</module>
 <!--
     <module>configurable</module>
 
@@ -57,7 +58,6 @@
     <module>nuodb</module>
     <module>opensearch</module>
     <module>pdidataservice</module>
-    <module>postgresql</module>
     <module>redshift</module>
     <module>snowflake</module>
     <module>sqlite</module>

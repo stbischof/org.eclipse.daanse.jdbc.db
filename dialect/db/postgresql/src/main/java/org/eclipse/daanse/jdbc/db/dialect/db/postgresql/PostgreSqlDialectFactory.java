@@ -13,10 +13,10 @@
  */
 package org.eclipse.daanse.jdbc.db.dialect.db.postgresql;
 
-import java.sql.Connection;
 import java.util.function.Function;
 
 import org.eclipse.daanse.jdbc.db.dialect.api.DialectFactory;
+import org.eclipse.daanse.jdbc.db.dialect.api.DialectInitData;
 import org.eclipse.daanse.jdbc.db.dialect.api.DialectName;
 import org.eclipse.daanse.jdbc.db.dialect.db.common.AbstractDialectFactory;
 import org.osgi.service.component.annotations.Component;
@@ -27,7 +27,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 public class PostgreSqlDialectFactory extends AbstractDialectFactory<PostgreSqlDialect> {
 
     @Override
-    public Function<Connection, PostgreSqlDialect> getConstructorFunction() {
+    public Function<DialectInitData, PostgreSqlDialect> getConstructorFunction() {
         return PostgreSqlDialect::new;
     }
 

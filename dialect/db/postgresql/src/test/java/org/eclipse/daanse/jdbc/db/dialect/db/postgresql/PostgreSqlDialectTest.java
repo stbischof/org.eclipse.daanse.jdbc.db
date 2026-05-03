@@ -22,7 +22,6 @@
 package org.eclipse.daanse.jdbc.db.dialect.db.postgresql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -44,7 +43,8 @@ class PostgreSqlDialectTest {
     protected void setUp() throws Exception {
         when(connection.getMetaData()).thenReturn(metaData);
         when(metaData.getDatabaseProductName()).thenReturn("POSTGRESQL");
-        dialect = new PostgreSqlDialect(connection);
+        dialect = new PostgreSqlDialect(
+                org.eclipse.daanse.jdbc.db.dialect.api.DialectInitData.fromConnection(connection));
     }
 
     @Test
@@ -54,18 +54,20 @@ class PostgreSqlDialectTest {
 
     @Test
     void testGenerateRegularExpression_InvalidRegex() throws Exception {
-        assertNull(dialect.generateRegularExpression("table.column", "(a"), "Invalid regex should be ignored");
+        assertTrue(dialect.regexGenerator().generateRegularExpression("table.column", "(a").isEmpty(),
+                "Invalid regex should be ignored");
     }
 
     @Test
     void testGenerateRegularExpression_CaseInsensitive() throws Exception {
-        String sql = dialect.generateRegularExpression("table.column", "(?i)|(?u).*a.*").toString();
+        String sql = dialect.regexGenerator().generateRegularExpression("table.column", "(?i)|(?u).*a.*").get()
+                .toString();
         assertEquals("cast(table.column as text) is not null and cast(table.column as text) ~ '(?i).*a.*'", sql);
     }
 
     @Test
     void testGenerateRegularExpression_CaseSensitive() throws Exception {
-        String sql = dialect.generateRegularExpression("table.column", ".*a.*").toString();
+        String sql = dialect.regexGenerator().generateRegularExpression("table.column", ".*a.*").get().toString();
         assertEquals("cast(table.column as text) is not null and cast(table.column as text) ~ '.*a.*'", sql);
     }
 

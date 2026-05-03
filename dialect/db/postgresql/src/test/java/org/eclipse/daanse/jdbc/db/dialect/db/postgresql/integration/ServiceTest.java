@@ -27,7 +27,6 @@ import org.eclipse.daanse.jdbc.db.dialect.db.postgresql.PostgreSqlDialectFactory
 import org.junit.jupiter.api.Test;
 import org.osgi.test.common.annotation.InjectService;
 
-
 class ServiceTest {
     @Test
     void serviceExists(@InjectService List<DialectFactory> dialects) throws Exception {
